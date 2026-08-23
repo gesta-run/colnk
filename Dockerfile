@@ -9,7 +9,7 @@ COPY integration ./integration
 RUN go test ./...
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/colnk-server ./cmd/colnk-server
 
-FROM alpine:3.22 AS server
+FROM alpine:3.24 AS server
 RUN apk add --no-cache ca-certificates fuse3 iproute2 iptables curl bind-tools
 RUN mkdir -p /mnt/local && adduser -D -u 1000 agent
 RUN echo user_allow_other > /etc/fuse.conf
