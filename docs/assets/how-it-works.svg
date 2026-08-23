@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="520" viewBox="0 0 1280 520" role="img" aria-labelledby="title description">
+  <title id="title">CoLnk data path</title>
+  <desc id="description">A provider client sends file, TCP, and DNS traffic over one outbound yamux connection. The agent-side server exposes FUSE, routes, and split DNS to a coding agent.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#2563EB"/>
+    </marker>
+    <style>
+      .ui { font-family: system-ui, "Segoe UI", Helvetica, Arial, sans-serif; }
+      .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+      .heading { fill: #111827; font-size: 20px; font-weight: 650; }
+      .section { fill: #64748B; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; }
+      .title { fill: #111827; font-size: 15px; font-weight: 650; }
+      .body { fill: #64748B; font-size: 12px; }
+      .small { fill: #475569; font-size: 11px; }
+      .box { fill: #FFFFFF; stroke: #CBD5E1; stroke-width: 1.25; }
+      .group { fill: #F8FAFC; stroke: #CBD5E1; stroke-width: 1.25; }
+      .line { fill: none; stroke: #94A3B8; stroke-width: 1.5; }
+      .flow { fill: none; stroke: #2563EB; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect x="0.75" y="0.75" width="1278.5" height="518.5" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+
+  <g class="ui">
+    <text x="40" y="44" class="heading">CoLnk data path</text>
+    <text x="40" y="66" class="body">Provider resources become native interfaces in the agent environment.</text>
+
+    <!-- Provider side -->
+    <rect x="40" y="96" width="286" height="372" rx="6" class="group"/>
+    <text x="62" y="126" class="section">PROVIDER HOST</text>
+
+    <rect x="62" y="148" width="242" height="72" rx="5" class="box"/>
+    <rect x="78" y="166" width="36" height="36" rx="4" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <path d="M88 178H104M88 184H100M88 190H96" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round"/>
+    <text x="128" y="179" class="title mono">colnk</text>
+    <text x="128" y="198" class="body">provider client</text>
+
+    <path d="M183 220V250M122 250H244M122 250V272M244 250V272" class="line"/>
+
+    <rect x="62" y="272" width="116" height="86" rx="5" class="box"/>
+    <path d="M78 291H94L99 296H119V311H78Z" fill="none" stroke="#475569" stroke-width="1.4" stroke-linejoin="round"/>
+    <text x="78" y="330" class="title">Filesystem</text>
+    <text x="78" y="347" class="body mono">shared root</text>
+
+    <rect x="188" y="272" width="116" height="86" rx="5" class="box"/>
+    <circle cx="207" cy="301" r="10" fill="none" stroke="#475569" stroke-width="1.4"/>
+    <path d="M202 301H212M207 296V306" stroke="#475569" stroke-width="1.4" stroke-linecap="round"/>
+    <text x="204" y="330" class="title">Local TCP</text>
+    <text x="204" y="347" class="body mono">loopback</text>
+
+    <rect x="62" y="384" width="242" height="54" rx="5" fill="#F1F5F9" stroke="#CBD5E1"/>
+    <text x="78" y="407" class="small">Access is limited by host permissions</text>
+    <text x="78" y="424" class="small">and the selected share root.</text>
+
+    <!-- Transport -->
+    <rect x="360" y="96" width="476" height="372" rx="6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.25" stroke-dasharray="5 5"/>
+    <text x="382" y="126" class="section">TRANSPORT</text>
+
+    <line x1="382" y1="170" x2="814" y2="170" class="flow" marker-end="url(#arrow)"/>
+    <rect x="488" y="147" width="220" height="44" rx="4" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <text x="598" y="166" text-anchor="middle" fill="#1D4ED8" font-size="12" font-weight="700">OUTBOUND TCP :7443</text>
+    <text x="598" y="181" text-anchor="middle" fill="#3B82F6" font-size="10">shared API key</text>
+
+    <text x="382" y="229" class="title">yamux streams</text>
+    <text x="382" y="248" class="body">Independent logical channels over one connection</text>
+
+    <rect x="382" y="270" width="432" height="46" rx="4" class="box"/>
+    <rect x="397" y="284" width="18" height="18" rx="2" fill="#DBEAFE"/>
+    <text x="428" y="290" class="title mono">file</text>
+    <text x="428" y="306" class="body">filesystem RPC and streamed directory pages</text>
+
+    <rect x="382" y="326" width="432" height="46" rx="4" class="box"/>
+    <rect x="397" y="340" width="18" height="18" rx="2" fill="#DBEAFE"/>
+    <text x="428" y="346" class="title mono">tcp</text>
+    <text x="428" y="362" class="body">long-lived proxied connections</text>
+
+    <rect x="382" y="382" width="432" height="46" rx="4" class="box"/>
+    <rect x="397" y="396" width="18" height="18" rx="2" fill="#DBEAFE"/>
+    <text x="428" y="402" class="title mono">dns</text>
+    <text x="428" y="418" class="body">split DNS lookups</text>
+
+    <!-- Agent side -->
+    <rect x="870" y="96" width="370" height="372" rx="6" class="group"/>
+    <text x="892" y="126" class="section">AGENT ENVIRONMENT</text>
+
+    <rect x="892" y="148" width="326" height="72" rx="5" class="box"/>
+    <rect x="908" y="166" width="36" height="36" rx="4" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <path d="M917 177H935V191H917ZM921 173V177M931 173V177" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="958" y="179" class="title mono">colnk-server</text>
+    <text x="958" y="198" class="body">agent-side bridge</text>
+
+    <path d="M1055 220V246M935 246H1175M935 246V264M1055 246V264M1175 246V264" class="line"/>
+
+    <rect x="892" y="264" width="86" height="72" rx="5" class="box"/>
+    <text x="935" y="286" text-anchor="middle" class="title">FUSE</text>
+    <text x="935" y="304" text-anchor="middle" class="body mono">/mnt/local</text>
+    <text x="935" y="321" text-anchor="middle" class="small">files</text>
+
+    <rect x="1012" y="264" width="86" height="72" rx="5" class="box"/>
+    <text x="1055" y="286" text-anchor="middle" class="title">Routes</text>
+    <text x="1055" y="304" text-anchor="middle" class="body mono">local0</text>
+    <text x="1055" y="321" text-anchor="middle" class="small">TCP</text>
+
+    <rect x="1132" y="264" width="86" height="72" rx="5" class="box"/>
+    <text x="1175" y="286" text-anchor="middle" class="title">DNS</text>
+    <text x="1175" y="304" text-anchor="middle" class="body">split</text>
+    <text x="1175" y="321" text-anchor="middle" class="small">names</text>
+
+    <path d="M1055 336V366" class="line" marker-end="url(#arrow)"/>
+
+    <rect x="892" y="370" width="326" height="68" rx="5" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.25"/>
+    <text x="908" y="397" class="title">Coding agent and tools</text>
+    <text x="908" y="417" class="body">Use standard filesystem, socket, and DNS interfaces</text>
+
+    <line x1="326" y1="184" x2="360" y2="184" class="flow"/>
+    <line x1="836" y1="184" x2="870" y2="184" class="flow" marker-end="url(#arrow)"/>
+  </g>
+</svg>

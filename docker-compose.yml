@@ -1,0 +1,30 @@
+services:
+  server:
+    build:
+      context: .
+      target: server
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+    command:
+      - --listen=:7443
+      - --api-key-file=/run/secrets/api_key
+      - --mountpoint=/mnt/local
+      - --allow-other
+      - --metadata-cache-ttl=${COLNK_METADATA_CACHE_TTL:-10s}
+      - --interface=local0
+      - --dns-listen=127.0.0.1:53
+      - --max-tcp-connections=${COLNK_MAX_TCP_CONNECTIONS:-256}
+    secrets:
+      - api_key
+    ports:
+      - "127.0.0.1:7443:7443/tcp"
+    restart: unless-stopped
+
+secrets:
+  api_key:
+    file: ${COLNK_SECRETS_DIR:-.colnk-dev}/api-key

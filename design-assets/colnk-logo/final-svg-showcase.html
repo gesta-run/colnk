@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CoLnk — Final SVG Assets</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #e9e9e5; color: #10141c; font-family: Arial, sans-serif; }
+      main { width: min(1160px, calc(100% - 32px)); margin: auto; padding: 52px 0 72px; }
+      header { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 28px; }
+      h1 { margin: 0; font-size: clamp(44px, 7vw, 88px); font-weight: 500; letter-spacing: -.065em; line-height: .9; }
+      header p { max-width: 320px; margin: 0; color: #6d6e72; font-size: 14px; line-height: 1.5; }
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid #cacac5; border-right: 0; border-bottom: 0; }
+      article { background: #f8f8f5; border-right: 1px solid #cacac5; border-bottom: 1px solid #cacac5; transition: transform .35s ease; }
+      article:hover { transform: translateY(-3px); }
+      .art { display: grid; min-height: 330px; place-items: center; overflow: hidden; }
+      .transparent { background-color: #fff; background-image: linear-gradient(45deg, #ededed 25%, transparent 25%), linear-gradient(-45deg, #ededed 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ededed 75%), linear-gradient(-45deg, transparent 75%, #ededed 75%); background-position: 0 0, 0 8px, 8px -8px, -8px 0; background-size: 16px 16px; }
+      .white { background: #fff; }
+      img { display: block; width: min(78%, 390px); max-height: 260px; }
+      .symbol { width: min(50%, 190px); }
+      .meta { display: flex; min-height: 80px; align-items: start; justify-content: space-between; gap: 18px; padding: 16px 18px; }
+      h2 { margin: 0; font-size: 14px; }
+      a { color: #145bff; font: 11px monospace; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      footer { margin-top: 20px; color: #727377; font: 11px monospace; }
+      @media (max-width: 700px) { header { align-items: start; flex-direction: column; } .grid { grid-template-columns: 1fr; } .art { min-height: 280px; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>CoLnk<br />SVG Assets</h1>
+        <p>Local access for cloud coworkers. Ink #10141C · Cobalt #145BFF.</p>
+      </header>
+      <section class="grid" aria-label="Final logo assets">
+        <article><div class="art transparent"><img class="symbol" src="final-svg/colnk-symbol-transparent.svg" alt="Transparent CoLnk symbol" /></div><div class="meta"><h2>Symbol · Transparent</h2><a href="final-svg/colnk-symbol-transparent.svg" download>DOWNLOAD SVG</a></div></article>
+        <article><div class="art white"><img class="symbol" src="final-svg/colnk-symbol-white.svg" alt="CoLnk symbol on white" /></div><div class="meta"><h2>Symbol · White</h2><a href="final-svg/colnk-symbol-white.svg" download>DOWNLOAD SVG</a></div></article>
+        <article><div class="art transparent"><img src="final-svg/colnk-horizontal-transparent.svg" alt="Transparent CoLnk horizontal logo" /></div><div class="meta"><h2>Horizontal · Transparent</h2><a href="final-svg/colnk-horizontal-transparent.svg" download>DOWNLOAD SVG</a></div></article>
+        <article><div class="art white"><img src="final-svg/colnk-horizontal-white.svg" alt="CoLnk horizontal logo on white" /></div><div class="meta"><h2>Horizontal · White</h2><a href="final-svg/colnk-horizontal-white.svg" download>DOWNLOAD SVG</a></div></article>
+        <article><div class="art transparent"><img src="final-svg/colnk-stacked-transparent.svg" alt="Transparent CoLnk stacked logo" /></div><div class="meta"><h2>Stacked · Transparent</h2><a href="final-svg/colnk-stacked-transparent.svg" download>DOWNLOAD SVG</a></div></article>
+        <article><div class="art white"><img src="final-svg/colnk-stacked-white.svg" alt="CoLnk stacked logo on white" /></div><div class="meta"><h2>Stacked · White</h2><a href="final-svg/colnk-stacked-white.svg" download>DOWNLOAD SVG</a></div></article>
+      </section>
+      <footer>CoLnk identity · Quiet Matrix · SVG master set</footer>
+    </main>
+  </body>
+</html>
