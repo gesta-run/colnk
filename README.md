@@ -1,10 +1,17 @@
-# CoLnk
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="design-assets/colnk-logo/final-svg/colnk-horizontal-white.svg">
+    <img src="design-assets/colnk-logo/final-svg/colnk-horizontal-transparent.svg" alt="CoLnk" width="300">
+  </picture>
+</p>
 
-**Use local filesystems and TCP services from a remote coding-agent environment.**
+<p align="center"><strong>Use local filesystems and TCP services from a remote coding-agent environment.</strong></p>
 
-[![CI](https://github.com/gesta-run/colnk/actions/workflows/ci.yml/badge.svg)](https://github.com/gesta-run/colnk/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/Go-1.24%2B-00ADD8.svg)](go.mod)
+<p align="center">
+  <a href="https://github.com/gesta-run/colnk/actions/workflows/ci.yml"><img src="https://github.com/gesta-run/colnk/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="Apache 2.0 license"></a>
+  <a href="go.mod"><img src="https://img.shields.io/badge/Go-1.24%2B-00ADD8.svg" alt="Go 1.24+"></a>
+</p>
 
 CoLnk connects a remote agent environment to a provider host through interfaces that existing tools already understand:
 
