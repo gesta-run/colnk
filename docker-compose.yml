@@ -10,21 +10,8 @@ services:
       - NET_ADMIN
     devices:
       - /dev/fuse:/dev/fuse
-    command:
-      - --listen=:7443
-      - --api-key-file=/run/secrets/api_key
-      - --mountpoint=/mnt/local
-      - --allow-other
-      - --metadata-cache-ttl=${COLNK_METADATA_CACHE_TTL:-10s}
-      - --interface=local0
-      - --dns-listen=127.0.0.1:53
-      - --max-tcp-connections=${COLNK_MAX_TCP_CONNECTIONS:-256}
-    secrets:
-      - api_key
+    volumes:
+      - ${COLNK_CONFIG_DIR:-.colnk-dev}/server.toml:/run/colnk/server.toml:ro
     ports:
       - "127.0.0.1:7443:7443/tcp"
     restart: unless-stopped
-
-secrets:
-  api_key:
-    file: ${COLNK_SECRETS_DIR:-.colnk-dev}/api-key

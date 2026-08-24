@@ -12,6 +12,7 @@ Only the latest commit on the default branch is supported during the MVP phase.
 - Use the MVP only with Docker, a trusted local network, a controlled VPC, or another trusted transport.
 - Do not expose the MVP directly to the public internet.
 - The default `/` read-write share is intentionally high privilege and remains limited by the Mac user's permissions and TCC grants.
+- Client and server TOML files contain the shared API key. Keep them owned by the service user with mode `0600` or stricter; CoLnk rejects broader Unix permissions.
 - Resource paths and network targets are omitted from logs unless resource auditing is explicitly enabled.
 
 ## Reporting a vulnerability

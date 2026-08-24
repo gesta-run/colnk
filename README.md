@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://github.com/gesta-run/colnk/actions/workflows/ci.yml"><img src="https://github.com/gesta-run/colnk/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="Apache 2.0 license"></a>
-  <a href="go.mod"><img src="https://img.shields.io/badge/Go-1.24%2B-00ADD8.svg" alt="Go 1.24+"></a>
+  <a href="go.mod"><img src="https://img.shields.io/badge/Go-1.25%2B-00ADD8.svg" alt="Go 1.25+"></a>
 </p>
 
 CoLnk connects a remote agent environment to a provider host through interfaces that existing tools already understand:
@@ -30,12 +30,12 @@ CoLnk connects a remote agent environment to a provider host through interfaces 
 
 ## Features
 
-- Read-write FUSE access to `/` by default, or to a selected root with `--root`.
+- Read-write FUSE access to `/` by default, or to a configured root.
 - Transparent IPv4 TCP access controlled by CIDR and port allowlists.
 - `host.colnk` for reaching approved services bound to provider loopback.
 - Automatic reconnect with bounded FUSE and network cleanup.
 - Streamed directory listings, block caching, write aggregation, and payload compression.
-- Provider-native credential storage, with macOS Keychain support today.
+- Strict TOML configuration with explicit filesystem and network policy.
 - Docker-based end-to-end development environment.
 
 ## Quick start with Docker
@@ -43,7 +43,7 @@ CoLnk connects a remote agent environment to a provider host through interfaces 
 Requirements:
 
 - macOS
-- Go 1.24 or later
+- Go 1.25 or later
 - Docker Desktop with FUSE support
 - OpenSSL
 
@@ -53,11 +53,13 @@ Start the simulated Linux coding-agent environment:
 make docker-up
 ```
 
-In a second terminal, connect the current repository instead of the default `/` share:
+In a second terminal, start the provider client:
 
 ```bash
-./scripts/run-local-dev.sh --root "$PWD"
+./scripts/run-local-dev.sh
 ```
+
+The first run creates `.colnk-dev/client.toml` and `.colnk-dev/server.toml` with a shared development key. Edit `root` in `client.toml` to narrow the default `/` share.
 
 Open a shell as the simulated coding-agent user:
 
@@ -100,27 +102,33 @@ The resulting binary is `bin/colnk-server-linux-amd64`. The target Linux environ
 
 ## Connect a provider to a Linux agent host
 
-Generate one shared key and make it available to both programs. Prefer a protected file on the server and provider-native secure storage or an environment variable on the client.
+Generate one shared key and place it in protected TOML files on both hosts. Example files are available in [`configs/`](configs/).
+
+On the Linux agent host:
+
+```bash
+sudo install -d -m 700 /etc/colnk
+sudo install -m 600 configs/server.toml.example /etc/colnk/server.toml
+sudo editor /etc/colnk/server.toml
+```
 
 Start the server in the coding agent's namespace:
 
 ```bash
-sudo ./colnk-server \
-  --listen :7443 \
-  --api-key-file /etc/colnk/api-key \
-  --mountpoint /mnt/local \
-  --allow-other
+sudo ./colnk-server
 ```
 
-Connect from the current macOS provider:
+On the provider host, create the default client configuration and set the same API key:
 
 ```bash
-COLNK_API_KEY=sk-xxx colnk start \
-  --endpoint agent.example.com:7443 \
-  --root "$HOME/code"
+mkdir -p "$HOME/Library/Application Support/CoLnk"
+cp configs/client.toml.example "$HOME/Library/Application Support/CoLnk/client.toml"
+chmod 600 "$HOME/Library/Application Support/CoLnk/client.toml"
+editor "$HOME/Library/Application Support/CoLnk/client.toml"
+colnk
 ```
 
-Use `--save-key` once to store the selected key in macOS Keychain. Credential precedence is `--api-key`, `COLNK_API_KEY`, then Keychain on the client; the server also supports `--api-key-file`.
+Use `--config /path/to/file.toml` on either program to override the default path. Business settings are deliberately not accepted through command-line flags or environment variables.
 
 After the session is ready, Linux tools can use the shared filesystem directly:
 
@@ -133,16 +141,16 @@ git status
 
 The default policy exposes only the virtual host address `100.64.0.1/32`. `host.colnk` resolves to that address and maps TCP connections back to provider loopback.
 
-The provider chooses which local networks and ports to expose when it connects. An empty `--allow-ports` value, which is the default, allows all TCP ports in the selected CIDRs:
+The provider chooses which local networks and ports to expose in `client.toml`. An empty `allowPorts` list, which is the default, allows all TCP ports in the selected CIDRs:
 
-```bash
-COLNK_API_KEY=sk-xxx colnk start \
-  --endpoint agent.example.com:7443 \
-  --allow-cidrs 100.64.0.1/32,192.168.1.0/24,10.20.0.0/16 \
-  --dns-suffixes corp.example,internal.example
+```toml
+[network]
+allowCIDRs = ["100.64.0.1/32", "192.168.1.0/24", "10.20.0.0/16"]
+allowPorts = []
+dnsSuffixes = ["colnk", "corp.example", "internal.example"]
 ```
 
-Use `--allow-ports 22,80,443,5432` when the share should be restricted to specific TCP ports.
+Set `allowPorts = [22, 80, 443, 5432]` when the share should be restricted to specific TCP ports.
 
 The Linux environment can then use ordinary clients:
 
@@ -158,9 +166,9 @@ CoLnk currently proxies IPv4 TCP only. It does not forward UDP, ICMP, Ethernet f
 - The provider host and Linux agent environment are both trusted participants.
 - The current macOS client must run as a non-root user.
 - Filesystem access is limited by the provider process permissions and platform security controls.
-- The default share is `/` with read-write access; use `--root` to reduce the exposed scope.
+- The default share is `/` with read-write access; configure `root` to reduce the exposed scope.
 - Network access is limited by the provider-selected CIDRs, ports, and DNS suffixes; the server enforces the connection limit.
-- File paths, DNS names, and TCP targets are omitted from logs unless `--audit-resources` is enabled.
+- File paths, DNS names, and TCP targets are omitted from logs unless `logging.auditResources` is enabled.
 - One server accepts one active provider session.
 - The API key and payloads are not encrypted by CoLnk in the current MVP.
 
@@ -168,19 +176,18 @@ See [SECURITY.md](SECURITY.md) before deploying outside a local development envi
 
 ## Configuration highlights
 
-| Component | Option | Default | Purpose |
+| Component | TOML key | Default | Purpose |
 | --- | --- | --- | --- |
-| Client | `--endpoint` | required | CoLnk server in `host:port` form |
-| Client | `--root` | `/` | Provider directory exposed through FUSE |
-| Client | `--save-key` | `false` | Store the API key in macOS Keychain |
-| Server | `--mountpoint` | `/mnt/local` | FUSE mount visible to the coding agent |
-| Client | `--allow-cidrs` | `100.64.0.1/32` | Reachable provider-side IPv4 ranges |
-| Client | `--allow-ports` | all allowed CIDR ports | Reachable TCP ports |
-| Client | `--dns-suffixes` | `colnk` | Names resolved through split DNS |
-| Server | `--max-tcp-connections` | `256` | Concurrent proxied TCP limit |
-| Server | `--metadata-cache-ttl` | `10s` | FUSE metadata cache lifetime |
+| Client | `endpoint` | required | CoLnk server in `host:port` form |
+| Client | `root` | `/` | Provider directory exposed through FUSE |
+| Client | `network.allowCIDRs` | `100.64.0.1/32` | Reachable provider-side IPv4 ranges |
+| Client | `network.allowPorts` | all allowed CIDR ports | Reachable TCP ports |
+| Client | `network.dnsSuffixes` | `colnk` | Names resolved through split DNS |
+| Server | `mountpoint` | `/mnt/local` | FUSE mount visible to the coding agent |
+| Server | `network.maxTCPConnections` | `256` | Concurrent proxied TCP limit |
+| Server | `metadataCacheTTL` | `10s` | FUSE metadata cache lifetime |
 
-Run `colnk --help` and `colnk-server --help` for the complete option list.
+Both files require `auth.apiKey`. They must be owned by the running user and inaccessible to group and other users. See the [configuration reference](docs/configuration-design.md) for complete schemas, defaults, paths, and validation rules.
 
 ## Build and test
 
@@ -204,6 +211,7 @@ The Docker test covers authentication, FUSE operations, transparent TCP, split D
 ## Documentation
 
 - [Architecture](docs/design.md)
+- [Configuration](docs/configuration-design.md)
 - [Test cases](docs/test-cases.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)

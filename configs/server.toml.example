@@ -1,0 +1,17 @@
+listen = ":7443"
+mountpoint = "/mnt/local"
+allowOther = false
+metadataCacheTTL = "10s"
+
+[auth]
+apiKey = "sk-example"
+
+[network]
+interface = "local0"
+proxyPort = 15001
+maxTCPConnections = 256
+
+[dns]
+listen = "127.0.0.1:53"
+upstream = "1.1.1.1:53"
+configureResolver = true

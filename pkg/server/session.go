@@ -70,7 +70,7 @@ func serveSession(ctx context.Context, raw net.Conn, config Config, state *sessi
 		_ = unmount()
 		return fmt.Errorf("configure DNS: %w", err)
 	}
-	logger.Info("Mac bridge ready", "mountpoint", config.Mountpoint, "interface", config.InterfaceName)
+	logger.Info("provider bridge ready", "mountpoint", config.Mountpoint, "interface", config.InterfaceName)
 	<-sessionContext.Done()
 	releaseSession()
 	_ = connection.Close()

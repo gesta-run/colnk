@@ -1,0 +1,13 @@
+endpoint = "agent.example.com:7443"
+root = "/"
+
+[auth]
+apiKey = "sk-example"
+
+[network]
+allowCIDRs = ["100.64.0.1/32"]
+allowPorts = []
+dnsSuffixes = ["colnk"]
+
+[logging]
+auditResources = false

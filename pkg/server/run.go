@@ -19,7 +19,7 @@ type sessionState struct {
 func Run(ctx context.Context, config Config, logger *slog.Logger) error {
 	listener, err := net.Listen("tcp", config.Listen)
 	if err != nil {
-		return fmt.Errorf("listen for Mac client: %w", err)
+		return fmt.Errorf("listen for provider client: %w", err)
 	}
 	runContext, cancel := context.WithCancel(ctx)
 	var sessions sync.WaitGroup
@@ -39,7 +39,7 @@ func Run(ctx context.Context, config Config, logger *slog.Logger) error {
 			if runContext.Err() != nil {
 				return nil
 			}
-			return fmt.Errorf("accept Mac client: %w", err)
+			return fmt.Errorf("accept provider client: %w", err)
 		}
 		select {
 		case handshakeSlots <- struct{}{}:
@@ -50,7 +50,7 @@ func Run(ctx context.Context, config Config, logger *slog.Logger) error {
 				stopConnection := context.AfterFunc(runContext, func() { _ = raw.Close() })
 				defer stopConnection()
 				if err := serveSession(runContext, raw, config, &state, logger); err != nil && runContext.Err() == nil && !errors.Is(err, transport.ErrSessionActive) && !errors.Is(err, transport.ErrUnauthorized) {
-					logger.Warn("Mac session ended", "error", err)
+					logger.Warn("provider session ended", "error", err)
 				}
 			}(raw)
 		default:
