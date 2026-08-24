@@ -12,8 +12,8 @@ Reference: [karpenter-provider-gcp package layout](https://github.com/cloudpilot
 
 ## Constraints
 
-- Keep the `colnk` and `colnk-server` commands unchanged.
-- Keep flags, `COLNK_*` environment variables, config locations, DNS names, FUSE names, and wire protocol unchanged.
+- Keep the `colnk` and `colnk-server` runtime boundaries unchanged.
+- Keep DNS names, FUSE names, and the wire protocol unchanged.
 - Do not add plugin registries, dependency injection frameworks, or interfaces with only one implementation.
 - Do not add runtime layers to request, filesystem, or network hot paths.
 - Keep tests beside the package they cover.
@@ -31,9 +31,18 @@ pkg/
   client/
     config.go
     config_test.go
-    keychain_darwin.go
-    keychain_stub.go
     run.go
+
+  configfile/
+    load.go
+    load_test.go
+    paths.go
+    security_unix.go
+    security_other.go
+
+  configvalidate/
+    address.go
+    address_test.go
 
   server/
     config.go
@@ -87,21 +96,16 @@ pkg/
       remote_test.go
 
     filesystem/
-      mount_linux.go
-      mount_stub.go
-      types_linux.go
-      nodes_linux.go
-      directory_linux.go
-      file_linux.go
-      attributes_linux.go
       cache.go
       cache_test.go
-      io_cache.go
-      io_cache_test.go
-      write_buffer.go
-      write_buffer_test.go
+      mount_linux.go
+      mount_stub.go
+      nodes_linux.go
       symlink.go
       symlink_test.go
+      write_buffer.go
+      write_buffer_test.go
+      write_linux.go
 
     network/
       network_linux.go
@@ -119,7 +123,15 @@ pkg/
 
 ### `pkg/client`
 
-Owns the macOS command lifecycle: configuration, Keychain access, reconnect policy, and client sessions. It composes `transport` and `provider` but contains no filesystem or network implementation.
+Owns the provider command lifecycle: configuration, reconnect policy, and client sessions. It composes `transport` and `provider` but contains no filesystem or network implementation.
+
+### `pkg/configfile`
+
+Owns strict TOML loading, platform default paths, and platform-specific file security checks.
+
+### `pkg/configvalidate`
+
+Owns reusable validation for configuration values without performing file or runtime operations.
 
 ### `pkg/server`
 
@@ -135,7 +147,7 @@ Contains authenticated TCP and yamux session handling. It depends on `protocol` 
 
 ### `pkg/provider`
 
-Runs on macOS and serves local resources to the remote agent. The root package owns request routing, concurrency limits, payload budgets, and auditing.
+Runs on the provider host and serves local resources to the remote agent. The root package owns request routing, concurrency limits, payload budgets, and auditing.
 
 - `provider/filesystem` owns sandboxed file operations under the shared root.
 - `provider/network` owns CIDR, port, and DNS policy evaluation.

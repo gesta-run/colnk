@@ -12,7 +12,7 @@
 
 ### Successful connection
 
-- Start the server and Mac client with the same API key.
+- Start the server and provider client with the same API key.
 - Expect authentication to succeed and the server to create FUSE, `local0`, and split DNS.
 
 ### Invalid API key
@@ -22,7 +22,7 @@
 
 ### Duplicate connection
 
-- Keep one Mac session active and start a second client.
+- Keep one provider session active and start a second client.
 - Expect `session already active`; the first session remains unaffected.
 
 ### Disconnect and reconnect
@@ -32,12 +32,12 @@
 
 ## 3. FUSE
 
-- List the shared Mac root from the server environment.
+- List the shared provider root from the server environment.
 - Create, write, read, rename, and remove files.
 - Create absolute and relative symlinks and verify target mapping.
-- Modify a previously read file on the Mac and read it again from the server.
+- Modify a previously read file on the provider and read it again from the server.
 - Transfer a large file in 1 MiB chunks and compare hashes.
-- Read a 16 MiB file sequentially in 128 KiB requests and confirm no more than 16 Mac-side read RPCs.
+- Read a 16 MiB file sequentially in 128 KiB requests and confirm no more than 16 provider-side read RPCs.
 - Read the same uncached block concurrently and confirm only one miss RPC.
 - Perform out-of-order and overlapping writes to one block and compare hashes.
 - Call `fsync` and confirm the final write completes data, modification time, and persistence without a separate trailing RPC.
@@ -53,18 +53,18 @@
 ## 5. Network
 
 - Resolve `host.colnk` to `100.64.0.1`.
-- Access an allowed Mac service bound to `127.0.0.1`.
+- Access an allowed provider service bound to `127.0.0.1`.
 - Attempt access to a denied port.
 - Confirm ordinary public DNS still uses the upstream resolver.
 - Attempt ICMP and direct UDP.
-- Expect allowed TCP to succeed and denied TCP, ICMP, and UDP not to reach the Mac.
+- Expect allowed TCP to succeed and denied TCP, ICMP, and UDP not to reach the provider.
 
 ## 6. Permissions and Isolation
 
 - The server container does not use host networking or `--privileged`.
 - The server receives only `SYS_ADMIN`, `NET_ADMIN`, and `/dev/fuse`.
 - `/mnt/local` is not a host bind mount.
-- The non-root `agent` user can use the mount when `--allow-other` is enabled.
+- The non-root `agent` user can use the mount when `allowOther = true` is configured.
 
 ## 7. Resource Limits
 

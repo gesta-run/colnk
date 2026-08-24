@@ -1,105 +1,80 @@
 package client
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-func TestParseStartCommand(t *testing.T) {
-	config, err := ParseConfig([]string{"start", "--endpoint", "agent.example.test:7443"})
+func TestLoadConfigDefaults(t *testing.T) {
+	path := writeConfig(t, `
+endpoint = "agent.example.test:7443"
+
+[auth]
+apiKey = "sk-test"
+`)
+	config, err := LoadConfig(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if config.Endpoint != "agent.example.test:7443" || config.Root != "/" ||
 		len(config.Policy.AllowedCIDRs) != 1 || config.Policy.AllowedCIDRs[0] != "100.64.0.1/32" ||
-		len(config.Policy.AllowedPorts) != 0 {
+		len(config.Policy.AllowedPorts) != 0 || len(config.Policy.DNSSuffixes) != 1 {
 		t.Fatalf("unexpected config %#v", config)
 	}
 }
 
-func TestParseNetworkSharing(t *testing.T) {
-	config, err := ParseConfig([]string{
-		"start", "--endpoint", "agent.example.test:7443",
-		"--allow-cidrs", "192.168.1.0/24,10.20.0.0/16",
-		"--allow-ports", "22,443", "--dns-suffixes", "corp.example",
-	})
+func TestLoadNetworkSharing(t *testing.T) {
+	path := writeConfig(t, `
+endpoint = "agent.example.test:7443"
+root = "/tmp"
+
+[auth]
+apiKey = "sk-test"
+
+[network]
+allowCIDRs = ["192.168.1.0/24", "10.20.0.0/16", "192.168.1.0/24"]
+allowPorts = [22, 443, 443]
+dnsSuffixes = ["corp.example"]
+
+[logging]
+auditResources = true
+`)
+	config, err := LoadConfig(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(config.Policy.AllowedCIDRs) != 2 || len(config.Policy.AllowedPorts) != 2 ||
-		len(config.Policy.DNSSuffixes) != 1 || config.Policy.DNSSuffixes[0] != "corp.example" {
-		t.Fatalf("unexpected network policy %#v", config.Policy)
+		len(config.Policy.DNSSuffixes) != 1 || !config.AuditResources {
+		t.Fatalf("unexpected config %#v", config)
 	}
 }
 
-func TestAPIKeyPriority(t *testing.T) {
-	t.Setenv("COLNK_API_KEY", "sk-test-environment")
-	config := Config{Endpoint: "agent.example.test:7443", APIKey: "sk-test-flag"}
-	if err := ResolveAPIKey(&config); err != nil {
-		t.Fatal(err)
-	}
-	if config.APIKey != "sk-test-flag" {
-		t.Fatalf("explicit API key did not take priority: %q", config.APIKey)
-	}
-	config.APIKey = ""
-	if err := ResolveAPIKey(&config); err != nil {
-		t.Fatal(err)
-	}
-	if config.APIKey != "sk-test-environment" {
-		t.Fatalf("environment API key not selected: %q", config.APIKey)
-	}
-}
-
-func TestAPIKeyFallsBackToKeychain(t *testing.T) {
-	config := Config{Endpoint: "agent.example.test:7443"}
-	keychain := func(endpoint string) (string, error) {
-		if endpoint != config.Endpoint {
-			t.Fatalf("unexpected Keychain account %q", endpoint)
-		}
-		return "sk-test-keychain", nil
-	}
-	if err := resolveAPIKey(&config, func(string) string { return "" }, keychain); err != nil {
-		t.Fatal(err)
-	}
-	if config.APIKey != "sk-test-keychain" {
-		t.Fatalf("Keychain API key was not selected: %q", config.APIKey)
-	}
-}
-
-func TestRiskConfirmation(t *testing.T) {
-	stateDir := t.TempDir()
-	t.Setenv("COLNK_STATE_DIR", stateDir)
-	config := Config{Endpoint: "agent.example.test:7443", APIKey: "sk-test", Root: "/", AcceptRisk: true}
-	if err := ConfirmRisk(config, bytes.NewBuffer(nil), bytes.NewBuffer(nil)); err != nil {
-		t.Fatal(err)
-	}
-	files, err := filepath.Glob(filepath.Join(stateDir, "risk-accepted-v2-*"))
-	if err != nil || len(files) != 1 {
-		t.Fatalf("unexpected risk state files %#v: %v", files, err)
-	}
-	info, err := os.Stat(files[0])
+func TestExampleConfig(t *testing.T) {
+	contents, err := os.ReadFile("../../configs/client.toml.example")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm() != 0o600 {
-		t.Fatalf("unexpected risk file mode %o", info.Mode().Perm())
-	}
-	config.Endpoint = "other.example.test:7443"
-	if err := ConfirmRisk(config, bytes.NewBuffer(nil), bytes.NewBuffer(nil)); err != nil {
-		t.Fatal(err)
-	}
-	files, _ = filepath.Glob(filepath.Join(stateDir, "risk-accepted-v2-*"))
-	if len(files) != 2 {
-		t.Fatalf("risk consent was not scoped by endpoint: %#v", files)
+	if _, err := LoadConfig(writeConfig(t, string(contents))); err != nil {
+		t.Fatalf("example configuration is invalid: %v", err)
 	}
 }
 
-func TestRiskConfirmationDeclined(t *testing.T) {
-	t.Setenv("COLNK_STATE_DIR", t.TempDir())
-	if err := ConfirmRisk(Config{Endpoint: "agent.example.test:7443", APIKey: "sk-test", Root: "/"}, bytes.NewBufferString("no\n"), bytes.NewBuffer(nil)); err == nil {
-		t.Fatal("expected declined risk confirmation to fail")
+func TestLoadConfigRejectsInvalidValues(t *testing.T) {
+	tests := map[string]string{
+		"missing key":      `endpoint = "agent.example.test:7443"`,
+		"relative root":    "endpoint = \"agent.example.test:7443\"\nroot = \"relative\"\n[auth]\napiKey = \"sk-test\"\n",
+		"missing root":     "endpoint = \"agent.example.test:7443\"\nroot = \"/path/that/does/not/exist\"\n[auth]\napiKey = \"sk-test\"\n",
+		"invalid endpoint": "endpoint = \"https://agent.example.test\"\n[auth]\napiKey = \"sk-test\"\n",
+		"unknown key":      "endpoint = \"agent.example.test:7443\"\nunknown = true\n[auth]\napiKey = \"sk-test\"\n",
+	}
+	for name, contents := range tests {
+		t.Run(name, func(t *testing.T) {
+			if _, err := LoadConfig(writeConfig(t, contents)); err == nil {
+				t.Fatal("invalid configuration was accepted")
+			}
+		})
 	}
 }
 
@@ -112,9 +87,11 @@ func TestRootUserIsRejected(t *testing.T) {
 	}
 }
 
-func TestMissingEndpointOrAPIKey(t *testing.T) {
-	t.Setenv("COLNK_API_KEY", "")
-	if err := ResolveAPIKey(&Config{APIKey: "sk-test"}); err == nil {
-		t.Fatal("missing endpoint was accepted")
+func writeConfig(t *testing.T, contents string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "client.toml")
+	if err := os.WriteFile(path, []byte(strings.TrimSpace(contents)+"\n"), 0o600); err != nil {
+		t.Fatal(err)
 	}
+	return path
 }

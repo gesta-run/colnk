@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for review. Implementation must follow this document after the compatibility decision is confirmed.
+Implemented. This document defines the current configuration contract.
 
 ## Goals
 
@@ -119,6 +119,7 @@ Validation includes:
 - bounded list sizes to prevent excessive routes or handshake payloads.
 
 On Unix, files containing `auth.apiKey` must be owned by the running user and have no group or other permissions. Recommended modes are `0600` for editable files and `0400` for service-managed files. Server configuration is normally owned by root.
+Symbolic-link paths are accepted for managed-secret and atomic-update layouts, but the opened target must pass the same regular-file, ownership, and permission checks.
 
 ## Runtime Behavior
 
@@ -130,7 +131,7 @@ On Unix, files containing `auth.apiKey` must be owned by the running user and ha
 
 ## Compatibility Decision
 
-Recommended: make this an intentional clean break while the project has no released compatibility contract.
+CoLnk makes this an intentional clean break while the project has no released compatibility contract.
 
 - Remove `colnk start` and all business configuration flags.
 - Remove API-key environment and Keychain precedence.
@@ -138,12 +139,10 @@ Recommended: make this an intentional clean break while the project has no relea
 - Keep only `--config`, `--help`, and `--version`.
 - Keep protocol v4.1 unchanged because the on-wire network policy already has the correct ownership.
 
-Alternative: retain the old command and flags for one release, print deprecation warnings, and make TOML take precedence. This reduces migration friction but creates two configuration paths and substantially more test surface.
-
 ## Implementation Boundaries
 
 - Add a small shared configuration-file package for path resolution, TOML decoding, and Unix permission checks.
-- Keep client and server schema/default validation in their existing packages.
+- Keep client and server schema/default validation in their existing packages, with shared value validation in `pkg/configvalidate`.
 - Add example client and server TOML files.
 - Update installers, Docker Compose, tests, README, security documentation, and architecture documentation together.
 - Do not add automatic route discovery or hot reload as part of this change.

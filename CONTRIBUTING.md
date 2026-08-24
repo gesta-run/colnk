@@ -2,7 +2,7 @@
 
 ## Development
 
-Use Go 1.24 or later. Keep code, identifiers, comments, commits, and pull-request text in English.
+Use Go 1.25 or later. Keep code, identifiers, comments, commits, and pull-request text in English.
 
 ```bash
 go test ./...
